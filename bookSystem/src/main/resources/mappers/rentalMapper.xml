@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nsRental">
+	<select id="selectDuplDate" parameterType="java.util.HashMap"
+		resultType="Integer">
+		select count(*) from rentals
+		where reStartDate <![CDATA[ < ]]> date_format(#{reEndDate}, '%Y%m%d')
+		and reEndDate <![CDATA[ > ]]> date_format(#{reStartDate}, '%Y%m%d') 
+		and reBookNumber=#{reBookNumber}
+	</select>
+
+	<insert id="insertData" parameterType="MyRental">
+		insert into rentals(reSeq
+		,reBookNumber ,reEmail ,reStartDate ,reEndDate)
+		values (nextval(reSeq),
+		#{reBookNumber}, #{reEmail}, #{reStartDate},#{reEndDate})
+	</insert>
+
+	<select id="selectTotalCount" parameterType="java.util.HashMap"
+		resultType="Integer">
+		select count(*) from rentals
+		where reEmail=#{reEmail}
+	</select>
+
+	<select id="selectAllData" parameterType="String"
+		resultType="MyRental">
+		select * from rentals
+		where reEmail=#{reEmail}
+		order by reSeq desc
+	</select>
+
+	<select id="selectOneData" parameterType="Integer"
+		resultType="MyRental">
+		select * from rentals
+		where reSeq=#{reSeq}
+	</select>
+
+	<delete id="deleteData" parameterType="Integer">
+		delete from rentals
+		where reSeq=#{reSeq}
+	</delete>
+	
+	<update id="updateRemark" parameterType="java.util.HashMap">
+		update rentals
+		set reRemark=#{reRemark}
+		where reEmail=#{reEmail}
+	</update>
+	
+	<select id="selectRemarkData" parameterType="Integer" resultType="MyRental">
+		select * from rentals
+		where reBookNumber=#{reBookNumber}
+	</select>
+	
+	<update id="updateBookRemark" parameterType="java.util.HashMap">
+		update rentals
+		set reRemark=#{newMessage}
+		where reBookNumber=#{bkSeq}
+	</update>
+
+	<select id="selectMemberRemarkData" parameterType="String" resultType="MyRental">
+		select * from rentals
+		where reEmail=#{reEmail}
+	</select>
+	
+	<select id="getUpdateData" parameterType="Integer" resultType="MyRental">
+		select reSeq, reBookNumber, reEmail, date_format(reStartDate, '%Y-%m-%d') as reStartDate, 
+		date_format(reEndDate, '%Y-%m-%d') as reEndDate, reRemark
+		from rentals
+		where reSeq=#{reSeq}
+	</select>
+	
+	<update id="updateData" parameterType="MyRental">
+		update rentals
+		set reStartDate=#{reStartDate},
+		reEndDate=#{reEndDate}
+		where reSeq=#{reSeq}
+	</update>
+	
+	<select id="adminListTotal" parameterType="java.util.HashMap" resultType="Integer">
+		select count(*)
+		from members m right outer join rentals r 
+		on m.meEmail = r.reEmail 
+		<if test="mode == 'email'">
+			where r.reEmail like #{keyword}
+		</if>
+		<if test="mode == 'phone'">
+			where  m.mePhone like #{keyword}
+		</if>
+		<if test="mode == 'name'">
+			where m.meName like #{keyword}
+		</if>
+	</select>
+	
+	<select id="adminListAll" parameterType="java.util.HashMap" resultType="MyJoin">
+		select r.reEmail as email,m.meName as name,m.mePhone as phone,r.reBookNumber as bookNumber, 
+		r.reSeq as rentalNumber, r.reStartDate as startDate, r.reEndDate as endDate, r.reRemark as remark
+		from members m right outer join rentals r 
+		on m.meEmail = r.reEmail 
+		<if test="mode == 'email'">
+			where r.reEmail like #{keyword}
+		</if>
+		<if test="mode == 'phone'">
+			where m.mePhone like #{keyword}
+		</if>
+		<if test="mode == 'name'">
+			where m.meName like #{keyword}
+		</if>
+		order by r.reStartDate asc
+	</select>
+	
+	<select id="selectMonthStat" resultType="bean.StatisticMonth" parameterType="java.util.HashMap">
+		select reEmail as email, month(reStartDate) as month, count(*) as count
+		from rentals
+		where reRemark is null
+		<if test="mode == 'reEmail'">
+			and reEmail like #{keyword}
+		</if>
+		group by month, email
+		order by reEmail, month
+	</select>
+	
+	<select id="statMonthCount" resultType="bean.StatisticMonth" parameterType="java.util.HashMap">
+		select reEmail as email, month(reStartDate) as month, count(*) as count
+		from rentals
+		where reRemark is null
+		<if test="mode == 'reEmail'">
+			and reEmail like #{keyword}
+		</if>
+		group by month, email
+		order by reEmail, month
+	</select>
+	
+		
+	<select id="bookMonthCount" parameterType="java.util.HashMap" resultType="bean.BookMonth">
+		select reBookNumber as bookNumber, month(reStartDate) as month, count(*) as count
+		from rentals 
+		where reRemark is null 
+		<if test="mode == 'reBookNumber'">
+			and reBookNumber like #{keyword}
+		</if>
+		group by month, reBookNumber
+		order by reBookNumber
+	</select>
+	
+	<select id="selectBookMonth" parameterType="java.util.HashMap" resultType="bean.BookMonth">
+		select reBookNumber as bookNumber, month(reStartDate) as month, count(*) as count
+		from rentals 
+		where reRemark is null 
+		<if test="mode == 'reBookNumber'">
+			and reBookNumber like #{keyword}
+		</if>
+		group by month, reBookNumber
+		order by reBookNumber
+	</select>
+	
+	<select id="emailDuplCheck" parameterType="String" resultType="Integer">
+		select count(*)
+		from rentals
+		where reRemark is null 
+		and reEmail = #{email}
+	</select>
+</mapper>

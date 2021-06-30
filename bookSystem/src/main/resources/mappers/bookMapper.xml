@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nsBook">
+	<insert id="insertData" parameterType="MyBook">
+		insert into books(bkSeq,bkEmail,bkTitle,bkAuthor,bkPublisher,bkPublDate,bkContent,bkImage)
+		values (nextval(bkSeq),#{bkEmail},#{bkTitle},#{bkAuthor},#{bkPublisher},#{bkPublDate},#{bkContent},#{bkImage})
+	</insert>
+	
+	<select id="selectTotalCount" parameterType="java.util.HashMap" resultType="Integer">
+		select count(*) from books
+		<if test="mode == 'bkTitle'">
+			where bkTitle like #{keyword}
+		</if>
+		<if test="mode == 'bkAuthor'">
+			where bkAuthor like #{keyword}
+		</if>
+		<if test="mode == 'bkPublisher'">
+			where bkPublisher like #{keyword}
+		</if>
+	</select>
+	
+	<select id="selectAllData" parameterType="java.util.HashMap" resultType="MyBook">
+		select * from books
+		<if test="mode == 'bkTitle'">
+			where bkTitle like #{keyword}
+		</if>
+		<if test="mode == 'bkAuthor'">
+			where bkAuthor like #{keyword}
+		</if>
+		<if test="mode == 'bkPublisher'">
+			where bkPublisher like #{keyword}
+		</if>
+		order by bkSeq desc
+	</select>
+	
+	<select id="selectOneData" parameterType="Integer" resultType="MyBook">
+		select * from books
+		where bkSeq=#{bkSeq}		
+	</select>
+	
+	<update id="updateData" parameterType="MyBook">
+		update books 
+		set 
+		bkTitle=#{bkTitle},
+		bkAuthor=#{bkAuthor},
+		bkPublisher=#{bkPublisher},
+		bkPublDate=#{bkPublDate},
+		bkContent=#{bkContent},
+		bkImage=#{bkImage}
+		where bkSeq=#{bkSeq}
+	</update>
+	
+	<delete id="deleteData" parameterType="Integer">
+		delete from books 
+		where bkSeq=#{bkSeq}
+	</delete>
+	
+	<select id="bookDetailCount" parameterType="java.util.HashMap" resultType="Integer" >
+		select count(*)
+		from rentals 
+			inner join books
+				on rentals.reBookNumber = books.bkSeq
+			inner join members 
+				on rentals.reEmail = members.meEmail 
+		where reRemark is null
+		and rentals.reBookNumber = #{bookNumber}
+		and month(rentals.reStartDate) = #{month}
+		<if test="mode == 'email'">
+			and rentals.reEmail like #{keyword}
+		</if> 
+		<if test="mode == 'bookTitle'">
+			and books.bkTitle like #{keyword}
+		</if> 
+		<if test="mode == 'startDate'">
+			and rentals.reStartDate like #{keyword}
+		</if> 
+		<if test="mode == 'endDate'">
+			and rentals.reEndDate like #{keyword}
+		</if>
+	</select>
+	
+	<select id="selectDetailList" parameterType="java.util.HashMap" resultType="bean.StatisticsDetail">
+		select rentals.reEmail email, members.meName name, rentals.reBookNumber bookNumber, books.bkTitle bookTitle, rentals.reStartDate startDate, rentals.reEndDate endDate
+		from rentals 
+			inner join books
+				on rentals.reBookNumber = books.bkSeq
+			inner join members 
+				on rentals.reEmail = members.meEmail 
+		where reRemark is null
+		and rentals.reBookNumber = #{bookNumber}
+		and month(rentals.reStartDate) = #{month}
+		<if test="mode == 'email'">
+			and rentals.reEmail like #{keyword}
+		</if> 
+		<if test="mode == 'bookTitle'">
+			and books.bkTitle like #{keyword}
+		</if> 
+		<if test="mode == 'startDate'">
+			and rentals.reStartDate like #{keyword}
+		</if> 
+		<if test="mode == 'endDate'">
+			and rentals.reEndDate like #{keyword}
+		</if>
+	</select>
+
+
+</mapper>

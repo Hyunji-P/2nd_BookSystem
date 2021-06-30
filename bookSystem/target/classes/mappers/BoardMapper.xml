@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nsBoard">
+	<select id="selectTotalCount" parameterType="java.util.HashMap" resultType="Integer">
+		select count(*) from boards
+		<if test="mode == 'boTitle'">
+			where boTitle like #{keyword}
+		</if>
+	</select>
+	
+	<select id="selectAllData" parameterType="java.util.HashMap" resultType="MyBoard">
+		select boSeq, boEmail, boTitle, boContent,date_format(boRegDate, '%Y-%m-%d') as boRegDate, boHits, boOriginSeq, boGroupOrd, boGroupLayer 
+		from boards
+		<if test="mode == 'boTitle'">
+			where boTitle like #{keyword}
+		</if>
+		order by boOriginSeq desc,boGroupOrd asc,boGroupLayer asc
+	</select>
+	
+	<insert id="insertData" parameterType="MyBoard">
+		insert into boards(boSeq, boOriginSeq, boGroupOrd, boGroupLayer, boEmail, boTitle, boContent, boRegDate)
+		values(nextval(boSeq), lastval(boSeq), default, default, #{boEmail}, #{boTitle}, #{boContent}, date_format(sysdate(), '%Y-%m-%d'))
+	</insert>
+	
+	<select id="selectOneData" parameterType="Integer" resultType="MyBoard">
+		select * from boards
+		where boSeq=#{boSeq}
+	</select>
+		
+	<update id="updateHit" parameterType="java.util.HashMap">
+		update boards set boHits=#{boHits} where boSeq=#{boSeq}
+	</update>
+	
+	<insert id="insertFromOriginToReply" parameterType="MyBoard">
+		insert into boards(boSeq, boOriginSeq, boGroupOrd, boGroupLayer, boEmail, boTitle, boContent, boRegDate)
+		values(nextval(boSeq), #{boOriginSeq}, 1, 1, #{boEmail}, #{boTitle}, #{boContent}, date_format(sysdate(), '%Y-%m-%d'))
+	</insert>
+	
+	<update id="updateFromOriginToReply" parameterType="MyBoard">
+		update boards 
+		set boGroupOrd = #{boGroupOrd}
+		where boSeq=#{boSeq}
+	</update>
+	
+	<select id="selectReplyCount" parameterType="Integer" resultType="Integer">
+		select sum(boGroupOrd) from boards
+		where boOriginSeq=#{boOriginSeq};
+	</select>
+	
+	<select id="selectCurrData" resultType="MyBoard" parameterType="Integer">
+		select * from boards 
+		where boSeq =
+			(select max(boSeq) as boSeq from boards
+			where boOriginSeq = #{boOriginSeq} and boGroupOrd <![CDATA[>]]> 0)
+	</select>
+	
+	<select id="selectPrevData" resultType="MyBoard" parameterType="Integer">
+		select * from boards 
+		where boSeq= (
+			select max(boSeq) from boards
+			where boSeq not in (select max(boSeq) from boards)
+			and boOriginSeq = #{boOriginSeq} 
+			and boGroupOrd <![CDATA[>]]> 0)
+	</select>
+	
+	<insert id="insertFromReplyToReply" parameterType="MyBoard">
+		insert into boards(boSeq, boOriginSeq, boGroupOrd, boGroupLayer, boEmail, boTitle, boContent, boRegDate)
+		values(nextval(boSeq), #{boOriginSeq}, #{boGroupOrd}, #{boGroupLayer}, #{boEmail}, #{boTitle}, #{boContent}, date_format(sysdate(), '%Y-%m-%d'))
+	</insert>
+	
+	<update id="updateFromReplyToReply" parameterType="MyBoard">
+		update boards 
+		set boGroupLayer = #{boGroupLayer}
+		where boSeq=#{boSeq}
+	</update>
+	
+	<update id="updateData" parameterType="MyBoard">
+		update boards
+		set boTitle=#{boTitle},
+		boContent=#{boContent}
+		where boSeq=#{boSeq}
+	</update>
+	
+	<delete id="deleteOriginData" parameterType="Integer">
+		delete from boards
+		where boOriginSeq=#{boOriginSeq}
+	</delete>
+	
+	<delete id="delFromOriToRepl" parameterType="java.util.HashMap">
+		delete from boards
+		where boOriginSeq=#{boOriginSeq}
+		and boGroupOrd=#{boGroupOrd}
+	</delete>
+	 
+	<delete id="delFromReplToRepl" parameterType="Integer">
+		delete from boards
+		where boSeq=#{boSeq}
+	</delete>
+	
+	<select id="replyPrevData" resultType="MyBoard" parameterType="java.util.HashMap">
+		select * from boards 
+		where boSeq= (
+			select max(boSeq) from boards
+			where boSeq not in (select max(boSeq) from boards)
+			and boOriginSeq = #{boOriginSeq} 
+			and boGroupOrd = #{boGroupOrd})
+	</select>
+	
+</mapper>
+
+ 

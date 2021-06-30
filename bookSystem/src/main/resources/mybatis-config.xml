@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 마이바티스의 작동 규칙 정의 -->
+	<settings>
+		<setting name="cacheEnabled" value="false"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
+	</settings> 
+	
+	<typeAliases>
+		<typeAlias alias="MyMember" type="bean.MemberBean" />
+		<typeAlias alias="MyBook" type="bean.BookBean" />
+		<typeAlias alias="MyRental" type="bean.RentalBean" />
+		<typeAlias alias="MyJoin" type="bean.ListAdminBean" />
+		<typeAlias alias="MyStatis" type="bean.ListAdminBean" />
+		<typeAlias alias="MyBoard" type="bean.BoardBean" />
+	</typeAliases>	
+	
+
+</configuration>
+ 
